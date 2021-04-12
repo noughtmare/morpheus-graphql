@@ -2,15 +2,15 @@
 resolver: nightly-2021-03-29
 save-hackage-creds: false
 packages:
+  - morpheus-graphql-core
+  - morpheus-graphql-app
+  - morpheus-graphql-client
+  - .
   - morpheus-graphql-benchmarks
   - morpheus-graphql-examples-scotty
   - morpheus-graphql-examples-servant
   - morpheus-graphql-examples-client
   - morpheus-graphql-subscriptions
-  - morpheus-graphql-client
-  - morpheus-graphql-core
-  - morpheus-graphql-app
-  - .
 
 extra-deps:
   - fraxl-0.3.0.0

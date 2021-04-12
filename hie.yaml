@@ -2,7 +2,7 @@ cradle:
   stack:
     stackYaml: "./stack.yaml"
     components:
-      - path: "./morpheus-graphql-core"
+      - path: "./morpheus-graphql-core/src"
         component: "morpheus-graphql-core:lib"
       - path: "./morpheus-graphql-core/test"
         component: "morpheus-graphql-core:test:morpheus-test"

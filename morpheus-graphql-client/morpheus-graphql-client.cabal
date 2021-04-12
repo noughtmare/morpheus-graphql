@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d59aea46e7b5a980e29efc9a742f08b7e85035af178fc921b3e9176c2e5b449c
+-- hash: 469eb088de27f91c671c457d696ab4f522563708617ef96397e2caca999532a3
 
 name:           morpheus-graphql-client
 version:        0.17.0
@@ -37,6 +37,7 @@ data-files:
     test/Case/JSON/Custom/Subscription/response.json
     test/Case/LowercaseTypeName/response.json
     test/Case/Scalar/response.json
+    test/Case/Shopify/schema.json
 
 source-repository head
   type: git
@@ -90,6 +91,7 @@ test-suite morpheus-client-test
       Case.JSON.Custom.Subscription
       Case.LowercaseTypeName.Test
       Case.Scalar.Test
+      Case.Shopify.Test
       Spec.Utils
       Paths_morpheus_graphql_client
   hs-source-dirs:
