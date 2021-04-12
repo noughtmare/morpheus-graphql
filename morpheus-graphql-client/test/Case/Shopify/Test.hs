@@ -6,12 +6,9 @@ import Data.Morpheus.Types.ID (ID)
 import Data.Text
 import Prelude
 
-stringParseFail x = fail $ "Expecting ScalarValue.String but received: " <> show x
-
 pvs :: Coercible Text a => ScalarValue -> Either Text a
-pvs = \case
-  String x -> pure $ coerce x
-  x -> stringParseFail x
+pvs (String x) = pure $ coerce x
+pvs x = fail $ "Expecting ScalarValue.String but received: " <> show x
 
 newtype DateTime = DateTime Text deriving (Show, Eq)
 
