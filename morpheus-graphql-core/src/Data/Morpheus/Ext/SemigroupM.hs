@@ -9,11 +9,11 @@ module Data.Morpheus.Ext.SemigroupM
     (<:>),
     concatTraverse,
     join,
+    joinNonEmpty,
   )
 where
 
 import qualified Data.HashMap.Lazy as HM
-import Data.HashMap.Lazy (HashMap)
 import Data.Morpheus.Error.NameCollision (NameCollision)
 import Data.Morpheus.Ext.Empty (Empty (..))
 import Data.Morpheus.Ext.KeyOf (KeyOf (..))
@@ -31,13 +31,7 @@ import Data.Morpheus.Types.Internal.AST.Base
     Ref,
     ValidationErrors,
   )
-import Relude
-  ( ($),
-    Applicative (..),
-    Monad (..),
-    Semigroup (..),
-    Traversable (..),
-  )
+import Relude hiding (empty, join)
 
 class SemigroupM (m :: * -> *) a where
   mergeM :: [Ref FieldName] -> a -> a -> m a
@@ -74,10 +68,18 @@ join ::
   ) =>
   [a] ->
   m a
-join = __join empty
-  where
-    __join acc [] = pure acc
-    __join acc (x : xs) = acc <:> x >>= (`__join` xs)
+join = joinNonEmpty empty
+
+joinNonEmpty ::
+  ( Monad m,
+    Failure ValidationErrors m,
+    SemigroupM m a
+  ) =>
+  a ->
+  [a] ->
+  m a
+joinNonEmpty value [] = pure value
+joinNonEmpty value (x : xs) = value <:> x >>= (`joinNonEmpty` xs)
 
 (<:>) :: SemigroupM m a => a -> a -> m a
 (<:>) = mergeM []

@@ -17,7 +17,7 @@ where
 import Data.List (lookup)
 import Data.Morpheus.Ext.SemigroupM
   ( (<:>),
-    join,
+    joinNonEmpty,
   )
 import Data.Morpheus.Internal.Utils
   ( elems,
@@ -144,7 +144,7 @@ joinClusters selSet =
   traverse joinCluster
     >=> fmap UnionSelection . fromElems
   where
-    joinCluster (typeName, fragments) = UnionTag typeName <$> join (selSet : fragments)
+    joinCluster (typeName, fragments) = UnionTag typeName <$> joinNonEmpty selSet fragments
 
 withTypename ::
   SelectionSet VALID ->

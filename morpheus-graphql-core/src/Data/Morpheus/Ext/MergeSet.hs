@@ -6,6 +6,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Data.Morpheus.Ext.MergeSet
@@ -14,7 +15,6 @@ module Data.Morpheus.Ext.MergeSet
 where
 
 import Data.Morpheus.Ext.Elems (Elems (..))
-import Data.Morpheus.Ext.Empty (Empty (..))
 import Data.Morpheus.Ext.Map
   ( fromListT,
     resolveWith,
@@ -34,6 +34,7 @@ import Data.Morpheus.Internal.Utils
 import Data.Morpheus.Types.Internal.AST.Base
   ( FieldName,
     Ref,
+    ValidationError,
     ValidationErrors,
   )
 import Data.Morpheus.Types.Internal.AST.Stage
@@ -46,7 +47,7 @@ import Relude
 
 -- set with mergeable components
 newtype MergeSet (dups :: Stage) k a = MergeSet
-  { unpack :: [a]
+  { unpack :: NonEmpty a
   }
   deriving
     ( Show,
@@ -56,8 +57,7 @@ newtype MergeSet (dups :: Stage) k a = MergeSet
       Lift,
       Traversable,
       Collection a,
-      Elems a,
-      Empty
+      Elems a
     )
 
 instance (KeyOf k a) => Selectable k a (MergeSet opt k a) where
@@ -82,9 +82,13 @@ resolveMergable ::
     Failure ValidationErrors m
   ) =>
   [Ref FieldName] ->
-  [a] ->
+  NonEmpty a ->
   m (MergeSet dups k a)
-resolveMergable path xs = runResolutionT (fromListT (toPair <$> xs)) (MergeSet . fmap snd) (resolveWith (resolveConflict path))
+resolveMergable path (x :| xs) = runResolutionT (fromListT (toPair <$> (x : xs))) (MergeSet . fromList . map snd) (resolveWith (resolveConflict path))
+
+fromList' :: Failure ValidationErrors f => [a] -> f (NonEmpty a)
+fromList' [] = failure ["no empty selection Set" :: ValidationError]
+fromList' (x : xs) = pure (x :| xs)
 
 instance
   ( KeyOf k a,
@@ -95,13 +99,13 @@ instance
   ) =>
   FromElems m a (MergeSet VALID k a)
   where
-  fromElems = resolveMergable []
+  fromElems = resolveMergable [] <=< fromList'
 
 instance Applicative m => SemigroupM m (MergeSet RAW k a) where
   mergeM _ (MergeSet x) (MergeSet y) = pure $ MergeSet $ x <> y
 
-instance Applicative m => FromElems m a (MergeSet RAW k a) where
-  fromElems = pure . MergeSet
+instance (Applicative m, Failure ValidationErrors m) => FromElems m a (MergeSet RAW k a) where
+  fromElems = fmap MergeSet . fromList'
 
 resolveConflict ::
   ( Monad m,
